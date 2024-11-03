@@ -1,5 +1,7 @@
 import express from "express";
 
+import db from "./db/conn.mjs";
+
 const PORT = 3000;
 const app = express();
 
@@ -9,9 +11,23 @@ import stats from "./routes/stats.mjs";
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Welcome to the API.");
+// app.get("/", (req, res) => {
+//   res.send("Welcome to the API.");
+// });
+
+app.get("/", async (req, res) => {
+  let collection = db.collection("grades");
+  let newDocument = {
+    learner_id: 1,
+    class_id: 301,
+  };
+  let result = await collection.insertOne(newDocument).catch((e) => {
+    return e.errInfo.details.schemaRulesNotSatisfied;
+  });
+  res.send(result).status(204);
+  // res.send("Welcome to the API.");
 });
+
 app.use("/grades", stats);
 app.use("/grades", grades);
 app.use("/grades", grades_agg);
