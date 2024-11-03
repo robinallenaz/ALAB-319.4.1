@@ -86,6 +86,40 @@ router.get("/stats", async (req, res) => {
           },
         },
       },
+      {
+        $group: {
+          _id: null,
+          totalLearners: {
+            $sum: 1,
+          },
+          learnersAbove50: {
+            $sum: {
+              $cond: [
+                {
+                  $gt: ["$avg", 50],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalLearners: 1,
+          learnersAbove50: 1,
+          percentageAbove50: {
+            $multiply: [
+              {
+                $divide: ["$learnersAbove50", "$totalLearners"],
+              },
+              100,
+            ],
+          },
+        },
+      },
     ])
     .toArray();
 
