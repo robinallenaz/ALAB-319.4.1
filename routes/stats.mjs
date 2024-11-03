@@ -57,6 +57,15 @@ router.get("/stats", async (req, res) => {
           },
         },
       },
+      {
+        //Filters out grades below 50
+        $match: {
+          avg: { $gt: 50 },
+        },
+        // $filter: {
+        //   cond: { $gt: ["$avg", 50] },
+        // },
+      },
     ])
     .toArray();
 
