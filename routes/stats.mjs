@@ -10,36 +10,44 @@ router.get("/stats", async (req, res) => {
   let result = await collection
     .aggregate([
       {
-        $unwind: { path: "$scores" },
+        $unwind: {
+          path: "$scores",
+        },
       },
       {
         $group: {
-          _id: "$class_id",
+          _id: "$learner_id",
           quiz: {
             $push: {
-              $cond: {
-                if: { $eq: ["$scores.type", "quiz"] },
-                then: "$scores.score",
-                else: "$$REMOVE",
-              },
+              $cond: [
+                {
+                  $eq: ["$scores.type", "quiz"],
+                },
+                "$scores.score",
+                "$$REMOVE",
+              ],
             },
           },
           exam: {
             $push: {
-              $cond: {
-                if: { $eq: ["$scores.type", "exam"] },
-                then: "$scores.score",
-                else: "$$REMOVE",
-              },
+              $cond: [
+                {
+                  $eq: ["$scores.type", "exam"],
+                },
+                "$scores.score",
+                "$$REMOVE",
+              ],
             },
           },
           homework: {
             $push: {
-              $cond: {
-                if: { $eq: ["$scores.type", "homework"] },
-                then: "$scores.score",
-                else: "$$REMOVE",
-              },
+              $cond: [
+                {
+                  $eq: ["$scores.type", "homework"],
+                },
+                "$scores.score",
+                "$$REMOVE",
+              ],
             },
           },
         },
@@ -47,24 +55,36 @@ router.get("/stats", async (req, res) => {
       {
         $project: {
           _id: 0,
-          class_id: "$_id",
+          learner_id: "$_id",
           avg: {
             $sum: [
-              { $multiply: [{ $avg: "$exam" }, 0.5] },
-              { $multiply: [{ $avg: "$quiz" }, 0.3] },
-              { $multiply: [{ $avg: "$homework" }, 0.2] },
+              {
+                $multiply: [
+                  {
+                    $avg: "$exam",
+                  },
+                  0.5,
+                ],
+              },
+              {
+                $multiply: [
+                  {
+                    $avg: "$quiz",
+                  },
+                  0.3,
+                ],
+              },
+              {
+                $multiply: [
+                  {
+                    $avg: "$homework",
+                  },
+                  0.2,
+                ],
+              },
             ],
           },
         },
-      },
-      {
-        //Filters out grades below 50
-        $match: {
-          avg: { $gt: 50 },
-        },
-        // $filter: {
-        //   cond: { $gt: ["$avg", 50] },
-        // },
       },
     ])
     .toArray();
